@@ -29,7 +29,7 @@ import static com.mopub.nativeads.MoPubNative.MoPubNativeNetworkListener;
  *
  * This class is not thread safe and should only be called from the UI thread.
  */
-class NativeAdSource {
+public class NativeAdSource {
     private static final int CACHE_LIMIT = 3;
     private static final int EXPIRATION_TIME_MILLISECONDS = 15 * 60 * 1000; // 15 minutes
     private static final int DEFAULT_RETRY_TIME_MILLISECONDS = 1000; // 1 second
