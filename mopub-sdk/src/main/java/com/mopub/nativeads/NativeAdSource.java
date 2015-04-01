@@ -1,11 +1,11 @@
 package com.mopub.nativeads;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
 import com.mopub.common.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -52,6 +52,9 @@ class NativeAdSource {
     @Nullable private RequestParameters mRequestParameters;
     @Nullable private MoPubNative mMoPubNative;
 
+    public static final String ACTION_AD_NATIVE_LOADED = "actionAdNativeLoaded";
+    public static final String ACTION_AD_NATIVE_ERROR = "actionAdNativeError";
+
     /**
      * A listener for when ads are available for dequeueing.
      */
@@ -62,12 +65,12 @@ class NativeAdSource {
         void onAdsAvailable();
     }
 
-    NativeAdSource() {
-        this(new ArrayList<TimestampWrapper<NativeResponse>>(CACHE_LIMIT), new Handler());
+    NativeAdSource(Context context) {
+        this(context, new ArrayList<TimestampWrapper<NativeResponse>>(CACHE_LIMIT), new Handler());
     }
 
     @VisibleForTesting
-    NativeAdSource(@NonNull final List<TimestampWrapper<NativeResponse>> nativeAdCache,
+    NativeAdSource(final Context context, @NonNull final List<TimestampWrapper<NativeResponse>> nativeAdCache,
             @NonNull final Handler replenishCacheHandler) {
         mNativeAdCache = nativeAdCache;
         mReplenishCacheHandler = replenishCacheHandler;
@@ -83,6 +86,7 @@ class NativeAdSource {
         mMoPubNativeNetworkListener = new MoPubNativeNetworkListener() {
             @Override
             public void onNativeLoad(@NonNull final NativeResponse nativeResponse) {
+                context.sendBroadcast(new Intent(ACTION_AD_NATIVE_LOADED)); // todo: change to default mopub listeners style
                 // This can be null if the ad source was cleared as the AsyncTask is posting
                 // back to the UI handler. Drop this response.
                 if (mMoPubNative == null) {
@@ -116,6 +120,7 @@ class NativeAdSource {
                 updateRetryTime();
                 mRetryInFlight = true;
                 mReplenishCacheHandler.postDelayed(mReplenishCacheRunnable, mRetryTimeMilliseconds);
+                context.sendBroadcast(new Intent(ACTION_AD_NATIVE_ERROR));
             }
         };
 

@@ -12,7 +12,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.webkit.WebViewDatabase;
 import android.widget.FrameLayout;
-
 import com.mopub.common.AdFormat;
 import com.mopub.common.MoPub;
 import com.mopub.common.logging.MoPubLog;
@@ -86,25 +85,29 @@ public class MoPubView extends FrameLayout {
     }
 
     private void registerScreenStateBroadcastReceiver() {
-        mScreenStateReceiver = new BroadcastReceiver() {
-            public void onReceive(final Context context, final Intent intent) {
-                if (!Visibility.isScreenVisible(mScreenVisibility) || intent == null) {
-                    return;
+        try {
+            mScreenStateReceiver = new BroadcastReceiver() {
+                public void onReceive(final Context context, final Intent intent) {
+                    if (!Visibility.isScreenVisible(mScreenVisibility) || intent == null) {
+                        return;
+                    }
+
+                    final String action = intent.getAction();
+
+                    if (Intent.ACTION_USER_PRESENT.equals(action)) {
+                        setAdVisibility(View.VISIBLE);
+                    } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+                        setAdVisibility(View.GONE);
+                    }
                 }
+            };
 
-                final String action = intent.getAction();
-
-                if (Intent.ACTION_USER_PRESENT.equals(action)) {
-                    setAdVisibility(View.VISIBLE);
-                } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
-                    setAdVisibility(View.GONE);
-                }
-            }
-        };
-
-        final IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_USER_PRESENT);
-        mContext.registerReceiver(mScreenStateReceiver, filter);
+            final IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+            filter.addAction(Intent.ACTION_USER_PRESENT);
+            mContext.registerReceiver(mScreenStateReceiver, filter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void unregisterScreenStateBroadcastReceiver() {

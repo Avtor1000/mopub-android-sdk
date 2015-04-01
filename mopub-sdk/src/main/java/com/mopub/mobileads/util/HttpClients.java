@@ -7,8 +7,12 @@ public class HttpClients {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (httpClient != null && httpClient.getConnectionManager() != null) {
-                    httpClient.getConnectionManager().shutdown();
+                try {
+                    if (httpClient != null && httpClient.getConnectionManager() != null) {
+                        httpClient.getConnectionManager().shutdown();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }).start();

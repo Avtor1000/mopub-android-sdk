@@ -1,37 +1,29 @@
 package com.mopub.common;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
-import android.webkit.CookieSyncManager;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.webkit.*;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.util.WebViews;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-import static com.mopub.common.util.Drawables.BACKGROUND;
-import static com.mopub.common.util.Drawables.CLOSE;
-import static com.mopub.common.util.Drawables.LEFT_ARROW;
-import static com.mopub.common.util.Drawables.REFRESH;
-import static com.mopub.common.util.Drawables.RIGHT_ARROW;
-import static com.mopub.common.util.Drawables.UNLEFT_ARROW;
-import static com.mopub.common.util.Drawables.UNRIGHT_ARROW;
+import static com.mopub.common.util.Drawables.*;
 import static com.mopub.common.util.Intents.deviceCanHandleIntent;
 import static com.mopub.common.util.Intents.isDeepLink;
 
@@ -44,6 +36,7 @@ public class MoPubBrowser extends Activity {
     private ImageButton mForwardButton;
     private ImageButton mRefreshButton;
     private ImageButton mCloseButton;
+    private Bundle metaData;
 
     public static void open(final Context context, final String url) {
         MoPubLog.d("Opening url in MoPubBrowser: " + url);
@@ -56,6 +49,11 @@ public class MoPubBrowser extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            metaData = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA).metaData;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         setResult(Activity.RESULT_OK);
 
@@ -69,6 +67,29 @@ public class MoPubBrowser extends Activity {
         enableCookies();
     }
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) { // todo: add universal principle for this functionality, perform refactor if need
+        super.onPostCreate(savedInstanceState);
+        try {
+            if (metaData.getBoolean("isNeedOpenExternalBrowser", false)) {
+                String url = getIntent().getStringExtra(DESTINATION_URL_KEY);
+                Intent intent;
+
+                String fullscreenVideoTag = metaData.getString("fullscreenTag");
+                if (!TextUtils.isEmpty(fullscreenVideoTag) && url.toLowerCase().contains(fullscreenVideoTag.toLowerCase())) {
+                    intent = new Intent();
+                    intent.setClassName(this, metaData.getString("videoScreenClass"));
+                    intent.putExtra(DESTINATION_URL_KEY, url);
+                } else intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                finish();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
     private void initializeWebView() {
         WebSettings webSettings = mWebView.getSettings();
 
@@ -83,11 +104,12 @@ public class MoPubBrowser extends Activity {
         webSettings.setBuiltInZoomControls(true);
         webSettings.setUseWideViewPort(true);
 
-        mWebView.loadUrl(getIntent().getStringExtra(DESTINATION_URL_KEY));
+        if (metaData == null || !metaData.getBoolean("isNeedOpenExternalBrowser", false))
+            mWebView.loadUrl(getIntent().getStringExtra(DESTINATION_URL_KEY));
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedError(WebView view, int errorCode, String description,
-                    String failingUrl) {
+                                        String failingUrl) {
                 MoPubLog.d("MoPubBrowser error: " + description);
             }
 
@@ -200,6 +222,7 @@ public class MoPubBrowser extends Activity {
         mWebView = null;
     }
 
+    @SuppressWarnings("ResourceType")
     private View getMoPubBrowserView() {
         LinearLayout moPubBrowserView = new LinearLayout(this);
         LinearLayout.LayoutParams browserLayoutParams = new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
