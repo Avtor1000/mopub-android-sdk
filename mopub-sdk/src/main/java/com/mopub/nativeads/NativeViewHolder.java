@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
 
@@ -15,6 +14,8 @@ class NativeViewHolder {
     @Nullable TextView callToActionView;
     @Nullable ImageView mainImageView;
     @Nullable ImageView iconImageView;
+    @Nullable
+    View mainImageLayout;
 
     @VisibleForTesting
     static final NativeViewHolder EMPTY_VIEW_HOLDER = new NativeViewHolder();
@@ -31,6 +32,7 @@ class NativeViewHolder {
             nativeViewHolder.textView = (TextView) view.findViewById(viewBinder.textId);
             nativeViewHolder.callToActionView = (TextView) view.findViewById(viewBinder.callToActionId);
             nativeViewHolder.mainImageView = (ImageView) view.findViewById(viewBinder.mainImageId);
+            nativeViewHolder.mainImageLayout = view.findViewById(viewBinder.mainImageLayout);
             nativeViewHolder.iconImageView = (ImageView) view.findViewById(viewBinder.iconImageId);
             return nativeViewHolder;
         } catch (ClassCastException exception) {
@@ -43,7 +45,7 @@ class NativeViewHolder {
         addTextView(titleView, nativeResponse.getTitle());
         addTextView(textView, nativeResponse.getText());
         addTextView(callToActionView, nativeResponse.getCallToAction());
-        nativeResponse.loadMainImage(mainImageView);
+        nativeResponse.loadMainImage(mainImageView, mainImageLayout);
         nativeResponse.loadIconImage(iconImageView);
     }
 

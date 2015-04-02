@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.event.MoPubEvents;
 import com.mopub.common.logging.MoPubLog;
@@ -16,25 +15,11 @@ import com.mopub.network.TrackingRequest;
 import com.mopub.volley.VolleyError;
 import com.mopub.volley.toolbox.ImageLoader;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static android.view.View.OnClickListener;
 import static com.mopub.nativeads.BaseForwardingNativeAd.NativeEventListener;
-import static com.mopub.nativeads.NativeResponse.Parameter.CALL_TO_ACTION;
-import static com.mopub.nativeads.NativeResponse.Parameter.CLICK_DESTINATION;
-import static com.mopub.nativeads.NativeResponse.Parameter.CLICK_TRACKER;
-import static com.mopub.nativeads.NativeResponse.Parameter.ICON_IMAGE;
-import static com.mopub.nativeads.NativeResponse.Parameter.IMPRESSION_TRACKER;
-import static com.mopub.nativeads.NativeResponse.Parameter.MAIN_IMAGE;
-import static com.mopub.nativeads.NativeResponse.Parameter.STAR_RATING;
-import static com.mopub.nativeads.NativeResponse.Parameter.TEXT;
-import static com.mopub.nativeads.NativeResponse.Parameter.TITLE;
+import static com.mopub.nativeads.NativeResponse.Parameter.*;
 
 public class NativeResponse {
     enum Parameter {
@@ -289,18 +274,18 @@ public class NativeResponse {
     }
 
     // Non Interface Public Methods
-    public void loadMainImage(@Nullable final ImageView imageView) {
-        loadImageView(getMainImageUrl(), imageView);
+    public void loadMainImage(@Nullable final ImageView imageView, @Nullable final View mainImageLayout) {
+        loadImageView(getMainImageUrl(), imageView, mainImageLayout);
     }
 
     public void loadIconImage(@Nullable final ImageView imageView) {
-        loadImageView(getIconImageUrl(), imageView);
+        loadImageView(getIconImageUrl(), imageView, null);
     }
 
     public void loadExtrasImage(final String key, final ImageView imageView) {
         final Object object = getExtra(key);
         if (object != null && object instanceof String) {
-            loadImageView((String) object, imageView);
+            loadImageView((String) object, imageView, null);
         }
     }
 
@@ -317,13 +302,14 @@ public class NativeResponse {
     }
 
     // Helpers
-    private void loadImageView(@Nullable final String url, @Nullable final ImageView imageView) {
+    private void loadImageView(@Nullable final String url, @Nullable final ImageView imageView, @Nullable final View mainImageLayout) {
         if (imageView == null) {
             return;
         }
 
         if (url == null) {
             imageView.setImageDrawable(null);
+            if (mainImageLayout != null) mainImageLayout.setVisibility(View.GONE);
         } else {
             mImageLoader.get(url, new ImageLoader.ImageListener() {
                 @Override
@@ -332,12 +318,14 @@ public class NativeResponse {
                     if (!isImmediate) {
                         MoPubLog.d("Image was not loaded immediately into your ad view. You should call preCacheImages as part of your custom event loading process.");
                     }
+                    if (mainImageLayout != null) mainImageLayout.setVisibility(View.VISIBLE);
                     imageView.setImageBitmap(imageContainer.getBitmap());
                 }
 
                 @Override
                 public void onErrorResponse(final VolleyError volleyError) {
                     MoPubLog.d("Failed to load image.", volleyError);
+                    if (mainImageLayout != null) mainImageLayout.setVisibility(View.GONE);
                     imageView.setImageDrawable(null);
                 }
             });

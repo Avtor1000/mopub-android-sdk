@@ -14,7 +14,9 @@ public class ViewBinder {
         private int callToActionId;
         private int mainImageId;
         private int iconImageId;
-        @NonNull private Map<String, Integer> extras = Collections.emptyMap();
+        private int mainImageLayout;
+        @NonNull
+        private Map<String, Integer> extras = Collections.emptyMap();
 
         public Builder(final int layoutId) {
             this.layoutId = layoutId;
@@ -42,6 +44,12 @@ public class ViewBinder {
         @NonNull
         public final Builder mainImageId(final int mainImageId) {
             this.mainImageId = mainImageId;
+            return this;
+        }
+
+        @NonNull
+        public final Builder mainImageLayout(final int mainImageLayout) {
+            this.mainImageLayout = mainImageLayout;
             return this;
         }
 
@@ -75,7 +83,9 @@ public class ViewBinder {
     final int callToActionId;
     final int mainImageId;
     final int iconImageId;
-    @NonNull final Map<String, Integer> extras;
+    final int mainImageLayout;
+    @NonNull
+    final Map<String, Integer> extras;
 
     private ViewBinder(@NonNull final Builder builder) {
         this.layoutId = builder.layoutId;
@@ -83,6 +93,7 @@ public class ViewBinder {
         this.textId = builder.textId;
         this.callToActionId = builder.callToActionId;
         this.mainImageId = builder.mainImageId;
+        this.mainImageLayout = builder.mainImageLayout;
         this.iconImageId = builder.iconImageId;
         this.extras = builder.extras;
     }
