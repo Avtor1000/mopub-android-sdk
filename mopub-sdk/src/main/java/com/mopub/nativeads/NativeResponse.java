@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import com.mopub.common.VisibleForTesting;
-import com.mopub.common.event.MoPubEvents;
+import com.mopub.common.event.BaseEvent;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.nativeads.MoPubNative.MoPubNativeEventListener;
 import com.mopub.network.Networking;
@@ -230,7 +230,7 @@ public class NativeResponse {
 
         for (final String impressionTracker : getImpressionTrackers()) {
             TrackingRequest.makeTrackingHttpRequest(
-                    impressionTracker, mContext, MoPubEvents.Type.IMPRESSION_REQUEST);
+                    impressionTracker, mContext, BaseEvent.Name.IMPRESSION_REQUEST);
         }
 
         mNativeAd.recordImpression();
@@ -246,7 +246,7 @@ public class NativeResponse {
 
         if (!isClicked()) {
             TrackingRequest.makeTrackingHttpRequest(
-                    mMoPubClickTracker, mContext, MoPubEvents.Type.CLICK_REQUEST);
+                    mMoPubClickTracker, mContext, BaseEvent.Name.CLICK_REQUEST);
         }
 
         openClickDestinationUrl(view);
